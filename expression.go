@@ -29,7 +29,7 @@ func (e *Expression) Init(level int) {
 		// Level 1 = 10
 		// Level 2 = 60
 		// Level 3 = 110
-		max = 9 + (level - 1) * common_diff
+		max = 10 + (level - 1) * common_diff
 		min = 1
 	} else if e.operator == "*" { // Multiplication
 		common_diff := 7
@@ -37,7 +37,7 @@ func (e *Expression) Init(level int) {
 		// Level 1 = 5
 		// Level 2 = 12
 		// Level 3 = 19
-		max = 7 + (level - 1) * common_diff
+		max = 5 + (level - 1) * common_diff
 		min = 2
 	} else { // Division
 		common_diff := 50
