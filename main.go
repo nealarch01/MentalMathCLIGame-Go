@@ -16,7 +16,7 @@ func askUserInput() int {
 	fmt.Print("Enter choice []: ")
 	fmt.Scanln(&userInput)
 
-	regex := regexp.MustCompile(`^[1|2|3]$`)
+	regex := regexp.MustCompile(`^[1-9]$`)
 
 	if regex.MatchString(userInput) {
 		i, _ := strconv.Atoi(userInput)
@@ -25,9 +25,9 @@ func askUserInput() int {
 	return -1
 }
 
-func addToQueue(exprQueue *ExprQueue) {
+func addToQueue(exprQueue *ExprQueue, level int) {
 	var expr Expression
-	expr.Init()
+	expr.Init(level)
 	exprQueue.Push(expr)
 }
 
@@ -47,20 +47,21 @@ func isNumber(str string) bool {
 	return regex.MatchString(str)
 }
 
-func playGame() bool {
+func playGame(level int) bool {
 	var exprQueue ExprQueue
 	var randomExpr Expression
 
 	for i := 0; i < 3; i++ {
-		randomExpr.Init()
+		randomExpr.Init(level)
 		exprQueue.Push(randomExpr)
 	}
 
 	currentTime := time.Now().Unix()
-	addTime := currentTime + 5
-	endTime := time.Now().Unix() + 30
+	addTime := currentTime + 2
+	endTime := time.Now().Unix() + 20
 
-	var count int = 0
+	var correct int = 0
+	var incorrect int = 0
 	var userInput string = ""
 	var active bool = true
 	var won bool = false
@@ -75,21 +76,23 @@ func playGame() bool {
 
 			if currentTime >= addTime {
 				addTime = currentTime + 5
-				addToQueue(&exprQueue)
+				addToQueue(&exprQueue, level)
 			}
 		}()
 
 		go func() {
 			defer wg.Done()
 
-			topExpr, err := exprQueue.Top()
-			if err != nil {
+			if exprQueue.Count() >= 12 {
 				active = false
+				won = false
 				return
 			}
 
-			if exprQueue.Count() >= 12 {
+			topExpr, err := exprQueue.Top()
+			if err != nil { // Queue underflow
 				active = false
+				won = true
 				return
 			}
 
@@ -97,15 +100,17 @@ func playGame() bool {
 			fmt.Scanln(&userInput)
 
 			if !isNumber(userInput) {
-				fmt.Println("Incorrect")
+				fmt.Println("Invalid input. Numbers only")
 				return
 			}
 
 			i, _ := strconv.Atoi(userInput)
 
 			if i == topExpr.CalcResult() {
-				count++
+				correct++
 				removeFromQueue(&exprQueue)
+			} else {
+				incorrect++
 			}
 		}()
 
@@ -113,55 +118,17 @@ func playGame() bool {
 		currentTime = time.Now().Unix()
 	}
 
-	// for currentTime < endTime && active == true {
-	// go func() {
-	// 	currentTime = time.Now().Unix()
-	// 	if currentTime >= addTime {
-	// 		addTime = currentTime + 5
-	// 		fmt.Println("Added to queue")
-	// 		addToQueue(&exprQueue)
-	// 	}
-	// }()
-
-	// 	if exprQueue.Count() >= 10 {
-	// 		won = false
-	// 		active = false
-	// 		return
-	// 		// break
-	// 	}
-
-	// 	topExpr, err := exprQueue.Top()
-	// 	if err != nil {
-	// 		won = true
-	// 		active = false
-	// 		return
-	// 		// break
-	// 	}
-
-	// 	fmt.Print(topExpr.Display(), " = ")
-	// 	fmt.Scanln(&userInput)
-
-	// 	if !isNumber(userInput) {
-	// 		fmt.Println("Incorrect")
-	// 		// return
-	// 	}
-
-	// 	i, _ := strconv.Atoi(userInput)
-
-	// 	if i == topExpr.CalcResult() {
-	// 		count++
-	// 		removeFromQueue(&exprQueue)
-	// 	}
-	// }()
-	// }
+	fmt.Printf("Correct answers: %d", correct)
+	fmt.Print("\n")
+	fmt.Printf("Incorrect answers: %d", incorrect)
+	fmt.Printf("\n")
 
 	if won == true {
-		fmt.Println("You've won!")
-		fmt.Printf("Score: %d", count)
+		fmt.Println("You won!")
 		return true
 	}
 
-	fmt.Println("Game over :(, practice makes perfect!")
+	fmt.Println("Game over :(")
 	return false
 }
 
@@ -171,24 +138,28 @@ func main() {
 	fmt.Println("[2.] How To Play")
 	fmt.Println("[3.] Exit")
 	selected := askUserInput()
-	for selected == -1 {
+	for selected > 3 || selected < 1 {
 		fmt.Println("Invalid input. Enter a number between 1 and 3")
 		selected = askUserInput()
 	}
 
-	switch selected {
-	case 1:
-		playGame()
-		break
+	var level int = 0
 
-	case 2:
+	if selected == 1 {
+		fmt.Println("Difficulty (1 - easy, 2 - medium, 3 - hard)")
+		level = askUserInput()
+		for level > 3 || level < 1 {
+			fmt.Println("Invalid input. Enter a number between 1 and 3")
+			level = askUserInput()
+		}
+		playGame(level)
+	} else if selected == 2 {
 		fmt.Println("1. You will be shown a math expression")
 		fmt.Println("2. Every few seconds, a new expression will be added into a queue")
 		fmt.Println("3. If the queue reaches its max size (you did not answer fast enough, the game will end)")
 		fmt.Println("4. To win, you must empty the queue completely or prevent the queue from filling for 60 seconds")
-		break
-
-	default:
+	} else {
 		os.Exit(0)
 	}
+
 }
