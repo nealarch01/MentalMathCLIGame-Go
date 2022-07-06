@@ -57,7 +57,6 @@ func playGame() bool {
 	}
 
 	currentTime := time.Now().Unix()
-	currentTime = currentTime + 1
 	addTime := currentTime + 5
 	endTime := time.Now().Unix() + 30
 
@@ -69,7 +68,6 @@ func playGame() bool {
 	var wg sync.WaitGroup
 
 	for currentTime < endTime && active == true {
-		currentTime = time.Now().Unix()
 		wg.Add(2)
 
 		go func() {
@@ -112,52 +110,54 @@ func playGame() bool {
 		}()
 
 		wg.Wait()
+		currentTime = time.Now().Unix()
 	}
 
 	// for currentTime < endTime && active == true {
-		// go func() {
-		// 	currentTime = time.Now().Unix()
-		// 	if currentTime >= addTime {
-		// 		addTime = currentTime + 5
-		// 		fmt.Println("Added to queue")
-		// 		addToQueue(&exprQueue)
-		// 	}
-		// }()
+	// go func() {
+	// 	currentTime = time.Now().Unix()
+	// 	if currentTime >= addTime {
+	// 		addTime = currentTime + 5
+	// 		fmt.Println("Added to queue")
+	// 		addToQueue(&exprQueue)
+	// 	}
+	// }()
 
-		// 	if exprQueue.Count() >= 10 {
-		// 		won = false
-		// 		active = false
-		// 		return
-		// 		// break
-		// 	}
+	// 	if exprQueue.Count() >= 10 {
+	// 		won = false
+	// 		active = false
+	// 		return
+	// 		// break
+	// 	}
 
-		// 	topExpr, err := exprQueue.Top()
-		// 	if err != nil {
-		// 		won = true
-		// 		active = false
-		// 		return
-		// 		// break
-		// 	}
+	// 	topExpr, err := exprQueue.Top()
+	// 	if err != nil {
+	// 		won = true
+	// 		active = false
+	// 		return
+	// 		// break
+	// 	}
 
-		// 	fmt.Print(topExpr.Display(), " = ")
-		// 	fmt.Scanln(&userInput)
+	// 	fmt.Print(topExpr.Display(), " = ")
+	// 	fmt.Scanln(&userInput)
 
-		// 	if !isNumber(userInput) {
-		// 		fmt.Println("Incorrect")
-		// 		// return
-		// 	}
+	// 	if !isNumber(userInput) {
+	// 		fmt.Println("Incorrect")
+	// 		// return
+	// 	}
 
-		// 	i, _ := strconv.Atoi(userInput)
+	// 	i, _ := strconv.Atoi(userInput)
 
-		// 	if i == topExpr.CalcResult() {
-		// 		count++
-		// 		removeFromQueue(&exprQueue)
-		// 	}
-		// }()
+	// 	if i == topExpr.CalcResult() {
+	// 		count++
+	// 		removeFromQueue(&exprQueue)
+	// 	}
+	// }()
 	// }
 
-	if won == true && active == false {
+	if won == true {
 		fmt.Println("You've won!")
+		fmt.Printf("Score: %d", count)
 		return true
 	}
 
