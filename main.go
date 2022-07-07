@@ -57,14 +57,13 @@ func playGame(level int) bool {
 	}
 
 	currentTime := time.Now().Unix()
-	addTime := currentTime + 2
-	endTime := time.Now().Unix() + 20
+	addTime := currentTime + 3
+	endTime := time.Now().Unix() + 60
 
 	var correct int = 0
 	var incorrect int = 0
 	var userInput string = ""
 	var active bool = true
-	var won bool = false
 
 	var wg sync.WaitGroup
 
@@ -75,7 +74,7 @@ func playGame(level int) bool {
 			defer wg.Done()
 
 			if currentTime >= addTime {
-				addTime = currentTime + 5
+				addTime = currentTime + 3
 				addToQueue(&exprQueue, level)
 			}
 		}()
@@ -85,14 +84,12 @@ func playGame(level int) bool {
 
 			if exprQueue.Count() >= 12 {
 				active = false
-				won = false
 				return
 			}
 
 			topExpr, err := exprQueue.Top()
 			if err != nil { // Queue underflow
 				active = false
-				won = true
 				return
 			}
 
@@ -123,13 +120,13 @@ func playGame(level int) bool {
 	fmt.Printf("Incorrect answers: %d", incorrect)
 	fmt.Printf("\n")
 
-	if won == true {
-		fmt.Println("You won!")
-		return true
+	if exprQueue.Count() >= 12 {
+		fmt.Println("Game over :(")
+		return false
 	}
 
-	fmt.Println("Game over :(")
-	return false
+	fmt.Println("You won!")
+	return true
 }
 
 func main() {
