@@ -12,7 +12,7 @@ type Expression struct {
 	operator     string
 }
 
-// Initializes the operand
+// Initializes the operand by assigning random values
 func (e *Expression) Init(level int) {
 	rand.Seed(time.Now().UnixNano())
 	operators := []string{"+", "-", "*", "/"}
@@ -23,13 +23,13 @@ func (e *Expression) Init(level int) {
 	var max int
 
 	if e.operator == "+" || e.operator == "-" { // Addition / subtraction
-		// Using an arithmetic sequence 
+		// Using an arithmetic sequence
 		common_diff := 50
 		// a1 = 10
 		// Level 1 = 10
 		// Level 2 = 60
 		// Level 3 = 110
-		max = 10 + (level - 1) * common_diff
+		max = 10 + (level-1)*common_diff
 		min = 1
 	} else if e.operator == "*" { // Multiplication
 		common_diff := 7
@@ -37,7 +37,7 @@ func (e *Expression) Init(level int) {
 		// Level 1 = 5
 		// Level 2 = 12
 		// Level 3 = 19
-		max = 5 + (level - 1) * common_diff
+		max = 5 + (level-1)*common_diff
 		min = 2
 	} else { // Division
 		common_diff := 50
@@ -45,12 +45,12 @@ func (e *Expression) Init(level int) {
 		// Level 1 = 10
 		// Level 2 = 60
 		// Level 3 = 110
-		max = 10 + (level - 1) * common_diff
+		max = 10 + (level-1)*common_diff
 		min = 2
 	}
 
 	// Intn generates a non-negative number
-	e.leftOperand = rand.Intn((max - min)) + min 
+	e.leftOperand = rand.Intn((max - min)) + min
 	e.rightOperand = rand.Intn((max - min)) + min
 
 	// If the left operand is smaller, swap with the right

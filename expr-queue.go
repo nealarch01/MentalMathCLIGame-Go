@@ -5,8 +5,10 @@ import (
 )
 
 type ExprQueue struct {
-	expressions []Expression // lower case property name means property cannot be seen
+	expressions []Expression // Expressions array will not be exported for abstraction purposes
 }
+
+// Methods
 
 func (eq *ExprQueue) Count() int {
 	return len(eq.expressions)
@@ -17,7 +19,7 @@ func (eq *ExprQueue) Pop() error {
 		return errors.New("Queue underflow")
 	}
 
-	eq.expressions = eq.expressions[1:] // Remove the last index
+	eq.expressions = eq.expressions[1:] // Removes the first index by slicing
 	return nil
 }
 
