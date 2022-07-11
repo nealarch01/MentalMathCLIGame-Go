@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	// "log"
 	"os"
 	"regexp"
 	"strconv"
@@ -47,6 +48,75 @@ func isNumber(str string) bool {
 	return regex.MatchString(str)
 }
 
+func queueAdderThread(exprQueue *ExprQueue, level int, active *bool, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	// Code block for thread testing
+	// lf, lf_err := os.OpenFile("logfile.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 644)
+	// if lf_err != nil {
+	// 	fmt.Println(lf_err.Error())
+	// 	*active = false
+	// }
+	// defer lf.Close()
+	// log.SetOutput(lf)
+
+	currentTime := time.Now().Unix()
+	addTime := currentTime + 3
+	endTime := currentTime + 60
+
+	for currentTime < endTime && *active == true {
+		if currentTime >= addTime {
+			addTime = currentTime + 3
+			addToQueue(exprQueue, level)
+			// log.Println("Added expression to queue") // For thread testing
+		}
+		currentTime = time.Now().Unix()
+	}
+	// log.Println("Thread operations finished") // Also for thread testing
+}
+
+func answerThread(exprQueue *ExprQueue, correct *int, incorrect *int, active *bool, wg *sync.WaitGroup) {
+	defer wg.Done()
+	currentTime := time.Now().Unix()
+	endTime := time.Now().Unix() + 60
+
+	var userInput string = ""
+
+	for currentTime < endTime && *active == true {
+		queueCount := exprQueue.Count()
+		if queueCount >= 50 || queueCount == 0 {
+			*active = false
+			return
+		}
+
+		topExpr, err := exprQueue.Top()
+
+		if err != nil {
+			*active = false
+			return
+		}
+
+		fmt.Print(topExpr.Display(), " = ")
+		fmt.Scanln(&userInput)
+
+		if !isNumber(userInput) {
+			fmt.Println("Invalid input. Numbers only")
+		}
+
+		i, _ := strconv.Atoi(userInput)
+
+		if i == topExpr.CalcResult() {
+			*correct++
+			removeFromQueue(exprQueue)
+		} else {
+			*incorrect++
+		}
+
+		currentTime = time.Now().Unix()
+	}
+
+}
+
 func playGame(level int) bool {
 	var exprQueue ExprQueue
 	var randomExpr Expression
@@ -56,64 +126,19 @@ func playGame(level int) bool {
 		exprQueue.Push(randomExpr)
 	}
 
-	currentTime := time.Now().Unix()
-	addTime := currentTime + 3
-	endTime := time.Now().Unix() + 60
-
 	var correct int = 0
 	var incorrect int = 0
-	var userInput string = ""
-	var active bool = true
 
 	var wg sync.WaitGroup
 
-	for currentTime < endTime && active == true {
-		wg.Add(2)
+	var active bool = true
 
-		go func() {
-			defer wg.Done()
+	wg.Add(2)
 
-			if currentTime >= addTime {
-				addTime = currentTime + 3
-				addToQueue(&exprQueue, level)
-			}
-		}()
+	go answerThread(&exprQueue, &correct, &incorrect, &active, &wg)
+	go queueAdderThread(&exprQueue, level, &active, &wg)
 
-		go func() {
-			defer wg.Done()
-
-			if exprQueue.Count() >= 12 {
-				active = false
-				return
-			}
-
-			topExpr, err := exprQueue.Top()
-			if err != nil { // Queue underflow
-				active = false
-				return
-			}
-
-			fmt.Print(topExpr.Display(), " = ")
-			fmt.Scanln(&userInput)
-
-			if !isNumber(userInput) {
-				fmt.Println("Invalid input. Numbers only")
-				return
-			}
-
-			i, _ := strconv.Atoi(userInput)
-
-			if i == topExpr.CalcResult() {
-				correct++
-				removeFromQueue(&exprQueue)
-			} else {
-				incorrect++
-			}
-		}()
-
-		wg.Wait()
-		currentTime = time.Now().Unix()
-	}
+	wg.Wait()
 
 	fmt.Printf("Correct answers: %d", correct)
 	fmt.Print("\n")
